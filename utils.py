@@ -29,7 +29,9 @@ def load_and_split_pdf(pdf_path: str):
     return splits
 
 
-def build_astra_vectorstore(docs, filename="unknown.pdf"):
+def build_astra_vectorstore(docs, 
+                            filename="unknown.pdf"):
+    
     print(f"📦 Building vector store for: {filename}")
 
     if not ASTRA_DB_APPLICATION_TOKEN or not ASTRA_DB_ID:
@@ -70,7 +72,8 @@ def build_astra_vectorstore(docs, filename="unknown.pdf"):
 
 
 
-def retrieve_context(query: str, vectorstore, k=3):
+def retrieve_context(query: str, 
+                     vectorstore, k=3):
     
     print(f"Retrieving context for query: {query}")
     
@@ -86,6 +89,8 @@ def retrieve_context(query: str, vectorstore, k=3):
     else:
         print(f"✅ Context retrieved successfully with {len(docs)} documents")
         return "\n".join([doc.page_content for doc in docs]), docs
+
+
 
 
 

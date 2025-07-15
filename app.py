@@ -1,12 +1,19 @@
-import streamlit as st
-import tempfile
 import os
-from dotenv import load_dotenv
+import tempfile
 from utils import load_and_split_pdf, build_astra_vectorstore, retrieve_context
 from inference_client import get_response
 from html_templates import render_chat_bubble
+from res_prompt_style import build_prompt_with_memory 
+from res_prompt_style import styles, wordlimit
+from res_prompt_style import instruction_format 
+import streamlit as st
+from dotenv import load_dotenv  
+
 
 load_dotenv()
+
+
+# --- Streamlit App Configuration ---
 st.set_page_config(page_title="📄 Chat with PDF", layout="centered")
 
 with open("style.css") as f:
@@ -71,9 +78,19 @@ if uploaded_file:
         col1, col2 = st.columns([1, 2])
         
         with col1:
-            response_type = st.radio("Response style", ["Short", "Long", "Explain"], horizontal=True, key="response_type")
+            response_type = st.radio("Response style", 
+                                     styles, 
+                                     horizontal=False, 
+                                     key="response_type")
         with col2:
-            word_limit = st.slider("Word limit", 50, 5000, 200, step=50, key="word_limit")
+            word_limit = st.slider("Word limit",
+                                   wordlimit[0],
+                                   wordlimit[1],
+                                   wordlimit[1] // 2,
+                                   step=wordlimit[2], 
+                                   key="word_limit")
+            
+            memory_limit = st.slider("Memory length", 1, 10, 5)
 
 
         query_input = st.text_input("Your question", value=st.session_state.query_input)
@@ -85,16 +102,13 @@ if uploaded_file:
             with st.spinner("🧠 Thinking..."):
                 context, _ = retrieve_context(query, st.session_state.vectorstore, k=3)
 
-                instruction = {
-                    "Short": f"Give a short, direct answer in under {word_limit} words.",
-                    "Long": f"Provide a thorough, detailed explanation within {word_limit} words.",
-                    "Explain": f"Explain it clearly like teaching a beginner. Use under {word_limit} words."
-                }[response_type]
+                instruction = instruction_format[response_type]
 
-                prompt = [
-                    {"role": "system", "content": f"Use the context to answer. {instruction}"},
-                    {"role": "user", "content": f"Context:\n{context}\n\nQuestion: {query}"}
-                ]
+                prompt = build_prompt_with_memory(context, 
+                                         query, 
+                                         instruction, 
+                                         st.session_state.chat_history, 
+                                         memory_limit=memory_limit)
 
                 loading_area = st.empty()
                 loading_area.info("⏳ Generating response...")
