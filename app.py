@@ -21,35 +21,24 @@ st.markdown("<h1 style='text-align: center;'>📄 Chat with PDF</h1>", unsafe_al
 st.markdown("---")
 
 # --- Session State Initialization ---
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
+def init_state():
+    defaults = {
+        "chat_history": [],
+        "vectorstore": None,
+        "last_file": None,
+        "query_input": "",
+        "new_message": False,
+        "settings_open": False,
+        "response_type": styles[0],
+        "word_limit": wordlimit[2],
+        "memory_limit": 5,
+        "strictness": 5,
+    }
+    for key, value in defaults.items():
+        if key not in st.session_state:
+            st.session_state[key] = value
 
-if "vectorstore" not in st.session_state:
-    st.session_state.vectorstore = None
-
-if "last_file" not in st.session_state:
-    st.session_state.last_file = None
-
-if "query_input" not in st.session_state:
-    st.session_state.query_input = ""
-
-if "new_message" not in st.session_state:
-    st.session_state.new_message = False
-
-if "settings_open" not in st.session_state:
-    st.session_state.settings_open = False
-
-if "response_type" not in st.session_state:
-    st.session_state.response_type = styles[0]
-
-if "word_limit" not in st.session_state:
-    st.session_state.word_limit = wordlimit[2]
-
-if "memory_limit" not in st.session_state:
-    st.session_state.memory_limit = 5
-
-if "strictness" not in st.session_state:
-    st.session_state.strictness = 5
+init_state()
 
 # ------------------------------------------------------ Upload PDF ------------------------------------------------------
 
@@ -96,17 +85,16 @@ if uploaded_file:
             st.session_state.settings_open = not st.session_state.settings_open
 
         if st.session_state.settings_open:
-            # Cache current values to avoid visual reset
-            current_response_type = st.session_state.response_type
-            current_word_limit = st.session_state.word_limit
-            current_memory_limit = st.session_state.memory_limit
-            current_strictness = st.session_state.strictness
-
             with st.expander("⚙️ Settings", expanded=True):
-                st.session_state.response_type = st.radio("Response style", styles, index=styles.index(current_response_type))
-                st.session_state.word_limit = st.slider("Word limit", wordlimit[0], wordlimit[1], current_word_limit, help="Maximum number of words in the response")
-                st.session_state.memory_limit = st.slider("Memory (previous Q&A pairs to remember)", 1, 10, current_memory_limit)
-                st.session_state.strictness = st.slider("📏 Strictness (how tightly to follow the PDF content)", 1, 10, current_strictness)
+                response_type = st.radio("Response style", styles, index=styles.index(st.session_state.response_type))
+                word_limit = st.slider("Word limit", wordlimit[0], wordlimit[1], st.session_state.word_limit, help="Maximum number of words in the response")
+                memory_limit = st.slider("Memory (previous Q&A pairs to remember)", 1, 10, st.session_state.memory_limit)
+                strictness = st.slider("📏 Strictness (how tightly to follow the PDF content)", 1, 10, st.session_state.strictness)
+
+                st.session_state.response_type = response_type
+                st.session_state.word_limit = word_limit
+                st.session_state.memory_limit = memory_limit
+                st.session_state.strictness = strictness
 
         if submitted and query_input.strip():
             query = query_input.strip()
