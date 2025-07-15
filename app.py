@@ -1,11 +1,11 @@
 import os
 import tempfile
-from utils import load_and_split_pdf, build_astra_vectorstore, retrieve_context
+from utils import load_and_split_pdf, build_astra_vectorstore, retrieve_context,build_prompt_with_memory
 from inference_client import get_response
 from html_templates import render_chat_bubble
-from res_prompt_style import build_prompt_with_memory 
-from res_prompt_style import styles, wordlimit
-from res_prompt_style import instruction_format 
+from utils import build_prompt_with_memory 
+from settings_defaults import init_state
+from settings_defaults import styles, maxwordlimit,instruction_format
 import streamlit as st
 from dotenv import load_dotenv
 
@@ -20,23 +20,7 @@ with open("style.css") as f:
 st.markdown("<h1 style='text-align: center;'>📄 Chat with PDF</h1>", unsafe_allow_html=True)
 st.markdown("---")
 
-# --- Session State Initialization ---
-def init_state():
-    defaults = {
-        "chat_history": [],
-        "vectorstore": None,
-        "last_file": None,
-        "query_input": "",
-        "new_message": False,
-        "settings_open": False,
-        "response_type": styles[0],
-        "word_limit": wordlimit[2],
-        "memory_limit": 5,
-        "strictness": 5,
-    }
-    for key, value in defaults.items():
-        if key not in st.session_state:
-            st.session_state[key] = value
+# ------------------------------------------- Session State Initialization ---------------------------------------
 
 init_state()
 
@@ -86,10 +70,28 @@ if uploaded_file:
 
         if st.session_state.settings_open:
             with st.expander("⚙️ Settings", expanded=True):
-                response_type = st.radio("Response style", styles, index=styles.index(st.session_state.response_type))
-                word_limit = st.slider("Word limit", wordlimit[0], wordlimit[1], st.session_state.word_limit, help="Maximum number of words in the response")
-                memory_limit = st.slider("Memory (previous Q&A pairs to remember)", 1, 10, st.session_state.memory_limit)
-                strictness = st.slider("📏 Strictness (how tightly to follow the PDF content)", 1, 10, st.session_state.strictness)
+                
+                response_type = st.radio("Response style", 
+                                         styles, 
+                                         index=styles.index(st.session_state.response_type))
+                
+                word_limit = st.slider("Word limit",
+                                        0,
+                                        maxwordlimit, 
+                                       st.session_state.word_limit,
+                                       help="Maximum number of words in the response")
+                
+                memory_limit = st.slider("Memory previous Q&A pairs to remember", 
+                                         1, 
+                                         10, 
+                                         st.session_state.memory_limit,
+                                         help="Maximum number of previous Q&A pairs to include in the prompt")
+                
+                strictness = st.slider("Strictness", 
+                                       1,
+                                       10, 
+                                       st.session_state.strictness,
+                                       help="Degree of adherence to provided context in pdf")
 
                 st.session_state.response_type = response_type
                 st.session_state.word_limit = word_limit
