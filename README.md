@@ -32,7 +32,7 @@ A conversational PDF assistant built using LangChain, LLaMA, AstraDB, and Stream
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/chat-with-pdf.git
+git clone https://github.com/Stefinshibygeorge/chat-with-pdf.git
 cd chat-with-pdf
 ```
 
@@ -47,10 +47,10 @@ pip install -r requirements.txt
 Create a `.env` file with:
 
 ```env
-HF_TOKEN=your_huggingface_api_key
-HF_PROVIDER=fireworks-ai
-ASTRA_DB_ID=your_astra_db_id
-ASTRA_DB_APPLICATION_TOKEN=your_astra_token
+HF_TOKEN= <your_huggingface_api_key>
+HF_PROVIDER= <fireworks-ai>
+ASTRA_DB_ID= <your_astra_db_id>
+ASTRA_DB_APPLICATION_TOKEN= <your_astra_token>
 ```
 
 ### 4. Run the app
@@ -68,7 +68,7 @@ chat-with-pdf/
 ├── app.py                  # Streamlit app
 ├── inference_client.py     # LLM request logic
 ├── utils.py                # PDF loading, vector DB setup
-├── chat_memory.py          # Memory-enabled prompt builder
+├── main.py                 # test run, without UI
 ├── html_templates.py       # Chat bubble HTML renderer
 ├── style.css               # Chat UI styling
 ├── config.py               # Global config variables
